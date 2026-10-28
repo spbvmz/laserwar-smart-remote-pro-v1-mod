@@ -6,6 +6,21 @@ An unofficial mod of firmware v1.14 for the Laserwar Smart PRO Remote («Умн�
 
 Mod version: **1.04** (2026-10-27), based on the official firmware **v1.14**.
 
+<p>
+  <img src="docs/images/en-main.jpg" width="200" alt="Main menu">
+  <img src="docs/images/en-devices.jpg" width="200" alt="Devices">
+</p>
+
+<details>
+<summary>More menu photos (English and Russian UI)</summary>
+<p>
+  <img src="docs/images/en-point.jpg" width="200" alt="Point">
+  <img src="docs/images/ru-main.jpg" width="200" alt="Главное меню">
+  <img src="docs/images/ru-devices.jpg" width="200" alt="Девайсы">
+  <img src="docs/images/ru-point-capture.jpg" width="200" alt="Захват точки">
+</p>
+</details>
+
 ## What is added
 
 - **INFO** — mod version and contacts.

@@ -6,6 +6,21 @@
 
 Текущая версия мода: **1.04** (27.10.2026), основа — официальная прошивка **v1.14**.
 
+<p>
+  <img src="docs/images/ru-main.jpg" width="200" alt="Главное меню">
+  <img src="docs/images/ru-devices.jpg" width="200" alt="Девайсы">
+</p>
+
+<details>
+<summary>Ещё фото меню (русский и английский интерфейс)</summary>
+<p>
+  <img src="docs/images/ru-point-capture.jpg" width="200" alt="Захват точки">
+  <img src="docs/images/en-main.jpg" width="200" alt="Main menu">
+  <img src="docs/images/en-devices.jpg" width="200" alt="Devices">
+  <img src="docs/images/en-point.jpg" width="200" alt="Point">
+</p>
+</details>
+
 ## Что добавлено
 
 - **INFO** — версия мода и контакты.
