@@ -138,6 +138,17 @@ sequenceDiagram
 | 180..182 | аптечка: команда | команда |
 | 183..185 | противостояние: команда | команда |
 
+### Тагер (мод-прошивка)
+
+Пункты «Зомби» и «ID тагера» не пишут регистры устройств поля. Пульт шлёт один обычный Miles-кадр прямо в тагер (без Identify / Commit). Третий байт считается по общему правилу выше.
+
+Нужна [модифицированная прошивка тагера](https://github.com/spbvmz/laserwar-tager-firmware-mod).
+
+| Команда | Параметр | Кадр (пример) |
+|---------|----------|---------------|
+| `C5 N` | время превращения в зомби, секунды 0..60 | `C5 1E DB` при N=30 |
+| `C6 N` | игровой ID 0..125, в EEPROM | `C6 01 C7` при N=1 |
+
 ## English
 
 ### IR frame
@@ -259,3 +270,14 @@ Example: medkit round time 1 h (3600 = `0E10`), address 40 (`28`):
 | 177..179 | capture command | command |
 | 180..182 | medkit command | command |
 | 183..185 | 2x2 command | command |
+
+### Tager (modified firmware)
+
+The Zombie and Tager ID items do not write field-device registers. The remote sends one regular Miles frame straight to the tager (no Identify / Commit). The third byte follows the usual rule above.
+
+Requires the [modified tager firmware](https://github.com/spbvmz/laserwar-tager-firmware-mod).
+
+| Command | Parameter | Frame (example) |
+|---------|-----------|-----------------|
+| `C5 N` | zombie transformation time, seconds 0..60 | `C5 1E DB` for N=30 |
+| `C6 N` | player ID 0..125, EEPROM | `C6 01 C7` for N=1 |

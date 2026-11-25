@@ -456,6 +456,21 @@ def build_cave(p: SimpleNamespace, stock: bytes, gap_ms: int) -> tuple[bytes, di
     emit(0xBD70)  # pop {r4-r6, pc}
     flush()
 
+    # send_tager(r0 = cmd | arg << 8): slot 0 = cmd arg 00 00 (stock Miles frame), rest skipped
+    tager_values = any(row[12] == DEV_TAGER for row in VALUES.values())
+    if tager_values or any(kid[5] == DEV_TAGER for kid in tree_items("action")):
+        func("send_tager")
+        emit(0xB510)  # push {r4, lr}
+        ldr(4, p.pkt)
+        str_r(0, 0)
+        emit(0x2300)  # movs r3, #0
+        for s in range(1, NSLOTS):
+            str_r(3, s)  # skipped slot
+        emit(0x0020)  # movs r0, r4
+        bl(lab["press_common"])
+        emit(0xBD10)  # pop {r4, pc}
+        flush()
+
     # value item handler (flag 2): r0 = &event (0 '+', 1 '-', 2 draw) or NULL (OK),
     # r1 = descriptor {byte, step, max, group base, register, min sent, group size, radix}
     func("val_common")
@@ -534,6 +549,14 @@ def build_cave(p: SimpleNamespace, stock: bytes, gap_ms: int) -> tuple[bytes, di
     emit(0x7928)  # ldrb r0, [r5, #4]  register
     emit(0x2A00)  # cmp r2, #0
     ph("beq", "v_word")
+    if tager_values:
+        emit(0x2A00 | DEV_TAGER)  # cmp r2, #DEV_TAGER
+        ph("bne", "v_fak")
+        emit(0x0209)  # lsls r1, r1, #8
+        emit(0x4308)  # orrs r0, r1   cmd | value << 8
+        bl(lab["send_tager"])
+        ph("b", "v_out")
+        lab["v_fak"] = here()
     bl(lab["send_fak"])
     ph("b", "v_out")
     lab["v_word"] = here()
@@ -562,23 +585,29 @@ def build_cave(p: SimpleNamespace, stock: bytes, gap_ms: int) -> tuple[bytes, di
             continue
         func(f"act_common{i}")
         emit(0xB500)  # push {lr}
-        if acts[0][3] == REG_TARGET:
-            ldr(0, p.target)
-            emit(0x7800)  # ldrb r0, [r0, #0]  register set by the opening link
-        else:
-            emit(0x7808)  # ldrb r0, [r1, #0]
-        if any(kid[5] for kid in acts):
-            emit(0x784A)  # ldrb r2, [r1, #1]  device
-            emit(0x8849)  # ldrh r1, [r1, #2]
-            emit(0x2A00)  # cmp r2, #0
-            ph("beq", f"act_word{i}")
-            bl(lab["send_fak"])
+        if any(kid[5] == DEV_TAGER for kid in acts):
+            expect(all(kid[5] == DEV_TAGER for kid in acts), f"page '{pg[1]}' mixes tager and device actions")
+            emit(0x8848)  # ldrh r0, [r1, #2]  cmd | arg << 8
+            bl(lab["send_tager"])
             emit(0xBD00)  # pop {pc}
-            lab[f"act_word{i}"] = here()
         else:
-            emit(0x8849)  # ldrh r1, [r1, #2]
-        bl(lab["send_word"])
-        emit(0xBD00)  # pop {pc}
+            if acts[0][3] == REG_TARGET:
+                ldr(0, p.target)
+                emit(0x7800)  # ldrb r0, [r0, #0]  register set by the opening link
+            else:
+                emit(0x7808)  # ldrb r0, [r1, #0]
+            if any(kid[5] for kid in acts):
+                emit(0x784A)  # ldrb r2, [r1, #1]  device
+                emit(0x8849)  # ldrh r1, [r1, #2]
+                emit(0x2A00)  # cmp r2, #0
+                ph("beq", f"act_word{i}")
+                bl(lab["send_fak"])
+                emit(0xBD00)  # pop {pc}
+                lab[f"act_word{i}"] = here()
+            else:
+                emit(0x8849)  # ldrh r1, [r1, #2]
+            bl(lab["send_word"])
+            emit(0xBD00)  # pop {pc}
         flush()
         for _kind, _ru, _en, reg, val, dev in acts:
             func(f"act{k}")
@@ -751,6 +780,13 @@ def verify(p: SimpleNamespace, image: bytes, stock: bytes, meta: dict) -> list[s
     log: list[str] = []
     st = {"tick": 5000, "sent": [], "enter": None, "keys": None}
 
+    def miles_frame(cmd: int, arg: int) -> str:
+        """Frame the stock tx_miles sends for buf = cmd arg: third byte E8 below B0, else cmd^arg."""
+        expect(hasattr(p, "tx_miles"), "tager commands need a profile with tx_miles")
+        hw = [struct.unpack_from("<H", stock, p.tx_miles + k)[0] for k in range(0, 0x20, 2)]
+        expect(hw[7:10] == [0x28B0, 0xDA02, 0x20E8] and hw[14] == 0x4042, "tx_miles check byte pattern")
+        return bytes([cmd, arg, cmd ^ arg if cmd >= 0xB0 else 0xE8]).hex()
+
     def gettick(emu: ThumbEmu) -> None:
         emu.r[0] = st["tick"]
 
@@ -866,6 +902,8 @@ def verify(p: SimpleNamespace, image: bytes, stock: bytes, meta: dict) -> list[s
     def want(reg: int, val: int, dev: int = DEV_POINT) -> list[str]:
         if dev == DEV_POINT:
             return [pk.hex() for pk in word_session(reg, val)]
+        if dev == DEV_TAGER:
+            return [bytes([val & 0xFF, val >> 8]).hex()]
         if dev == DEV_FAK:
             data = [val]
             addrs = [reg]
@@ -902,11 +940,12 @@ def verify(p: SimpleNamespace, image: bytes, stock: bytes, meta: dict) -> list[s
         if start + step <= vmax:
             event(off, 0)
             expect(emu.rd8(at) == start + step, f"{key}: '+' failed")
-        for _ in range(100):
+        presses = max(100, vmax + 1)
+        for _ in range(presses):
             event(off, 0)
         expect(emu.rd8(at) == vmax, f"{key}: max {emu.rd8(at)} != {vmax}")
         expect(event(off, 2) == f" {vmax}", f"{key}: draw max")
-        for _ in range(100):
+        for _ in range(presses):
             event(off, 1)
         expect(emu.rd8(at) == 0, f"{key}: min {emu.rd8(at)}")
         expect(event(off, 2) == " 0", f"{key}: draw 0")
@@ -929,8 +968,14 @@ def verify(p: SimpleNamespace, image: bytes, stock: bytes, meta: dict) -> list[s
                 total = total * radix + d
             total = min(cap, max(vmin, total))
             got = send_via(off, 0)
-            expect(got == want(reg, total, dev), f"{key} {digits} sent {got}")
+            if dev == DEV_TAGER:
+                expect(got == want(0, reg | total << 8, dev), f"{key} {digits} sent {got}")
+            else:
+                expect(got == want(reg, total, dev), f"{key} {digits} sent {got}")
             sums.append(total)
+        if dev == DEV_TAGER:
+            frames = [miles_frame(reg, s) for s in sums]
+            return f"0..{vmax} step {step}, OK -> tager frames {frames} (stock Miles)"
         return f"0..{vmax} step {step}, OK -> reg {reg}: {sums}"
 
     # stock text width (r0 = str, r1 = font) on the stock image mapped at APP_BASE
@@ -1008,7 +1053,9 @@ def verify(p: SimpleNamespace, image: bytes, stock: bytes, meta: dict) -> list[s
                     reg = target
                 got = send_via(off, 0)
                 expect(got == want(reg, kid[4], kid[5]), f"action {ru}: sent {got}")
-                if kid[5] and not cmd_logged:
+                if kid[5] == DEV_TAGER:
+                    log.append(f"{pad}{ru}: {miles_frame(kid[4] & 0xFF, kid[4] >> 8)} (stock Miles)")
+                elif kid[5] and not cmd_logged:
                     log.append(f"{pad}{ru}: {' '.join(got)}")
                     cmd_logged = kid[5] == DEV_FAK_CMD
                 acts += 1
@@ -1044,6 +1091,15 @@ def verify(p: SimpleNamespace, image: bytes, stock: bytes, meta: dict) -> list[s
     expect(sum(1 for a in acts if a[5] == DEV_FAK_CMD) == n_cmd + n_cp2 and n_cmd == 28 + 8 + 50 * 2 + 29
            and n_cp2 == 23 * 2 + 3, "medkit command count")
     log.append(f"  actions: {len(acts)} ({n_cmd} medkit commands, {n_cp2} command post commands)")
+    expect(not any(a[5] == DEV_TAGER for a in acts), "tager action rows")
+    tager_rows = [k for k, row in VALUES.items() if row[12] == DEV_TAGER]
+    expect(tager_rows == [ZOMBIE_KEY, TAGER_ID_KEY], f"tager value rows {tager_rows}")
+    expect(TREE[4][-2:] == [ZOMBIE_PAGE, TAGER_ID_PAGE], "Зомби, ID тагера are not last in Девайсы")
+    zv, tv = VALUES[ZOMBIE_KEY], VALUES[TAGER_ID_KEY]
+    log.append(f"  tager value row '{zv[0]}' in '{ZOMBIE_PAGE[1]}', "
+               f"default {zv[5]} -> {miles_frame(ZOMBIE_CMD, zv[5])}")
+    log.append(f"  tager value row '{tv[0]}' in '{TAGER_ID_PAGE[1]}' (last in {TREE[1]}), "
+               f"default {tv[5]} -> {miles_frame(TAGER_ID_CMD, tv[5])}")
 
     diff = [i for i in range(len(stock)) if image[i] != stock[i]]
     allowed = set(range(p.cave, meta["cave_end"]))

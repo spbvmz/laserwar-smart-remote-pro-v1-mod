@@ -24,8 +24,9 @@ REG_MED_SETS, REG_MED_HOLD, REG_MED_CMD, REG_MED_HITS = 21, 22, 23, 26
 REG_CP2_INTERVAL, REG_CP2_REGEN, REG_CP2_POWER, REG_CP2_RAD, REG_CP2_HITS = 162, 164, 165, 166, 167
 REG_CP2_ROUND, REG_CP2_RESTORE, REG_CP2_AMMO, REG_CP2_HITS2, REG_CP2_RESTORE2 = 169, 171, 172, 174, 176
 REG_CP2_CMD_CAPT, REG_CP2_CMD_FAK, REG_CP2_CMD_2X2 = 177, 180, 183
-# device of a write: point word session, medkit byte / word / 3-byte command session
-DEV_POINT, DEV_FAK, DEV_FAK_WORD, DEV_FAK_CMD = 0, 1, 2, 3
+# device of a write: point word session, medkit byte / word / 3-byte command session,
+# tager: one stock Miles frame cmd arg (third byte E8 / cmd^arg added by the stock wrapper)
+DEV_POINT, DEV_FAK, DEV_FAK_WORD, DEV_FAK_CMD, DEV_TAGER = 0, 1, 2, 3, 4
 FAK_WRITE_IDENTIFY = True  # False: medkit sessions without Identify
 
 # key: (ru, en, byte, step, max, default, group base byte, register, min sent, group size, radix,
@@ -261,8 +262,8 @@ CP2_INTERVAL = [("Отключено", "Disabled", 0xFFFF), ("10 с", "10 s", 10
 
 INFO_LINES = [
     "Lasertag MOD",
-    "Версия: MOD 1.04",
-    "Build: 27.10.2026",
+    "Версия: MOD 1.05",
+    "Build: 25.11.2026",
     "База: Официальная",
     "прошивка v1.14",
     "Автор: @spbvmz",
@@ -281,6 +282,16 @@ INFO_LINES = [
     "Установка производится",
     "на ваш страх и риск.",
 ]
+
+# tager mod: C5 <sec> = seconds from the kill to the zombie; C6 <id> = player ID (EEPROM)
+ZOMBIE_CMD = 0xC5
+ZOMBIE_KEY = "zombie_time"
+VALUES[ZOMBIE_KEY] = ("Время:", "Time:", 80, 1, 60, 30, 80, ZOMBIE_CMD, 0, 1, 10, 60, DEV_TAGER)
+ZOMBIE_PAGE = page("Зомби", "Zombie", "icon_irbase", value(ZOMBIE_KEY))
+TAGER_ID_CMD = 0xC6
+TAGER_ID_KEY = "tager_id"
+VALUES[TAGER_ID_KEY] = ("ID:", "ID:", 81, 1, 125, 1, 81, TAGER_ID_CMD, 0, 1, 10, 125, DEV_TAGER)
+TAGER_ID_PAGE = page("ID тагера", "Tager ID", "icon_irbase", value(TAGER_ID_KEY))
 
 TREE = page(
     "Девайсы", "Devices", "icon_service",
@@ -422,6 +433,8 @@ TREE = page(
             page("Команда", "Command", "icon_irbase", *fak_cmds(REG_CP2_CMD_FAK, CP2_FAK_CMDS)),
         ),
     ),
+    ZOMBIE_PAGE,
+    TAGER_ID_PAGE,
 )
 ACTION_ICON = "icon_roundtime"
 VALUE_ICON = "icon_time"

@@ -2,9 +2,9 @@
 
 [Русская версия](README.md)
 
-An unofficial mod of firmware v1.14 for the Laserwar Smart PRO Remote («Умный пульт Про V.1»), the lasertag setup remote. It adds a Devices section to the main menu, so the capture point, Smart medkit 2.0, Smart medic and command post can be set up from the remote, without a computer or the configurator.
+An unofficial mod of firmware v1.14 for the Laserwar Smart PRO Remote («Умный пульт Про V.1»), the lasertag setup remote. It adds a Devices section to the main menu, so the capture point, Smart medkit 2.0, Smart medic and command post can be set up from the remote, without a computer or the configurator. It also controls zombie transformation time and tager ID for the [modified tager firmware](https://github.com/spbvmz/laserwar-tager-firmware-mod).
 
-Mod version: **1.04** (2026-10-27), based on the official firmware **v1.14**.
+Mod version: **1.05** (2026-11-25), based on the official firmware **v1.14**.
 
 <p>
   <img src="docs/images/en-main.jpg" width="200" alt="Main menu">
@@ -29,6 +29,8 @@ Mod version: **1.04** (2026-10-27), based on the official firmware **v1.14**.
 - **Smart medkit 2.0** — sets, hold time, hits, game mode (Health, Ammo, Energy with period and activation), round time, commands for every mode, emission time.
 - **Smart medic** — sets, trigger time, hits, command.
 - **Command post** — base capture, 2x2, medkit: emission power and interval, hits to capture, round time, self-restore, command interval and commands.
+- **Zombie** — time from kill to zombie transformation (0..60 s). Requires the [modified tager firmware](https://github.com/spbvmz/laserwar-tager-firmware-mod).
+- **Tager ID** — change the player ID (0..125), stored in the tager EEPROM. Also for the modified tager firmware.
 
 Full menu tree with value ranges: [docs/menu.md](docs/menu.md#english).
 
@@ -46,7 +48,7 @@ You need Python 3.10 or newer (https://www.python.org/downloads/), nothing else.
 python build.py Smart_PRO_Remote_v1_14.zip
 ```
 
-You get `Smart_PRO_Remote_v1.14_mod_1.04.bin`. Before writing it the script checks the new menu, which takes about a minute. `--quick` skips the check.
+You get `Smart_PRO_Remote_v1.14_mod_1.05.bin`. Before writing it the script checks the new menu, which takes about a minute. `--quick` skips the check.
 
 Only the official v1.14 file is accepted: with any other or damaged firmware the build stops.
 

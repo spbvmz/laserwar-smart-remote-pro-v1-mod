@@ -53,23 +53,25 @@
 │  ├─ Время срабатывания        0..240
 │  ├─ Попаданий на компл.       Выкл | 1..250
 │  └─ Команда                   29 команд
-└─ Командный пункт
-   ├─ Захват базы
-   │  ├─ Сила выброса           1..100
-   │  ├─ Время между выбр.      Выкл | 10..254
-   │  ├─ Выстрелов для захв.    1..10000
-   │  ├─ Время раунда           2 мин … 2 ч
-   │  ├─ Самовосстановление     Выкл | 1..254
-   │  ├─ Интервал команды       Отключено | 10 с … 10 ч
-   │  └─ Команда при захвате    23 команды
-   ├─ Противостояние
-   │  ├─ Кол-во боезапаса       1..10000
-   │  ├─ Выстрелов для уничт.   1..10000
-   │  ├─ Самовосстановление     Выкл | 1..254
-   │  └─ Команда                23 команды
-   └─ Аптечка
-      ├─ Время регенерации      Выкл | 1..254
-      └─ Команда                Респаун | Старт игры | Старт с задержкой
+├─ Командный пункт
+│  ├─ Захват базы
+│  │  ├─ Сила выброса           1..100
+│  │  ├─ Время между выбр.      Выкл | 10..254
+│  │  ├─ Выстрелов для захв.    1..10000
+│  │  ├─ Время раунда           2 мин … 2 ч
+│  │  ├─ Самовосстановление     Выкл | 1..254
+│  │  ├─ Интервал команды       Отключено | 10 с … 10 ч
+│  │  └─ Команда при захвате    23 команды
+│  ├─ Противостояние
+│  │  ├─ Кол-во боезапаса       1..10000
+│  │  ├─ Выстрелов для уничт.   1..10000
+│  │  ├─ Самовосстановление     Выкл | 1..254
+│  │  └─ Команда                23 команды
+│  └─ Аптечка
+│     ├─ Время регенерации      Выкл | 1..254
+│     └─ Команда                Респаун | Старт игры | Старт с задержкой
+├─ Зомби                        время превращения 0..60 с (мод-прошивка тагера)
+└─ ID тагера                    0..125, в EEPROM (мод-прошивка тагера)
 ```
 
 Числа набираются по разрядам: «Сотни», «Десятки», «Единицы» (у больших значений ещё «Тысячи»). Для значений до 10000 разряд «Тысячи» идёт от 0 до 10.
@@ -127,23 +129,25 @@ Devices
 │  ├─ Trigger time              0..240
 │  ├─ Hits per set              Off | 1..250
 │  └─ Command                   29 commands
-└─ Command post
-   ├─ Base capture
-   │  ├─ Emission power         1..100
-   │  ├─ Emission interval      Off | 10..254
-   │  ├─ Hits to capture        1..10000
-   │  ├─ Round time             2 min … 2 h
-   │  ├─ Self-restore           Off | 1..254
-   │  ├─ Command interval       Disabled | 10 s … 10 h
-   │  └─ Capture command        23 commands
-   ├─ 2x2
-   │  ├─ Ammo count             1..10000
-   │  ├─ Hits to destroy        1..10000
-   │  ├─ Self-restore           Off | 1..254
-   │  └─ Command                23 commands
-   └─ Medkit
-      ├─ Regen time             Off | 1..254
-      └─ Command                Respawn | Start game | Delayed start
+├─ Command post
+│  ├─ Base capture
+│  │  ├─ Emission power         1..100
+│  │  ├─ Emission interval      Off | 10..254
+│  │  ├─ Hits to capture        1..10000
+│  │  ├─ Round time             2 min … 2 h
+│  │  ├─ Self-restore           Off | 1..254
+│  │  ├─ Command interval       Disabled | 10 s … 10 h
+│  │  └─ Capture command        23 commands
+│  ├─ 2x2
+│  │  ├─ Ammo count             1..10000
+│  │  ├─ Hits to destroy        1..10000
+│  │  ├─ Self-restore           Off | 1..254
+│  │  └─ Command                23 commands
+│  └─ Medkit
+│     ├─ Regen time             Off | 1..254
+│     └─ Command                Respawn | Start game | Delayed start
+├─ Zombie                       transformation time 0..60 s (modified tager firmware)
+└─ Tager ID                     0..125, EEPROM (modified tager firmware)
 ```
 
 Numbers are entered digit by digit: Hundreds, Tens, Units (plus Thousands for larger values). For values up to 10000 the Thousands digit goes from 0 to 10.

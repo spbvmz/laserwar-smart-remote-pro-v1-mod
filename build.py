@@ -18,7 +18,7 @@ from pathlib import Path
 from patcher.cave import APP_BASE, build_image, expect, load_profile, verify
 from patcher.thumb import STOCK_SIZE, stm32_crc_le
 
-MOD_VERSION = "1.04"
+MOD_VERSION = "1.05"
 STOCK_SHA256 = "097808d64c3cb744bc2328200359f57fa9592ab4148d43a722d9dd4785143d94"
 STOCK_URL = "https://laserwar.ru/admin/uploads/adminFiles/Smart_PRO_Remote_v1_14.zip"
 GAP_MS = 120
